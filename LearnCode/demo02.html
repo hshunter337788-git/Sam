@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>示例2——添加影像层，添加地图浏览控制</title>
+    <link rel="stylesheet" href="./css/ol.css">
+    <script src="./build/ol.js"></script>
+    
+</head>
+
+<body>
+
+
+
+   <div id="map" class="map">
+   </div>
+
+ 
+ <script>
+
+
+   
+   ///
+   ///创建地图对象
+   ///
+
+    var map = new ol.Map({
+        controls: ol.control.defaults().extend([
+        new ol.control.FullScreen(), //全屏控件
+        new ol.control.ScaleLine(), //比例尺
+        new ol.control.OverviewMap(), //鹰眼控件
+        ]),
+       target: 'map', //div#id='map'
+     });      
+
+
+    ///
+    ///创建渤海湾谷歌影像图层
+    ///
+      var bglayer =  new ol.layer.Tile({  
+                     title: "渤海湾谷歌影像", 
+                    source: new ol.source.XYZ({  
+                          url:  "http://10.122.156.28/MapService/haitu.aspx?request=GetTile&dataset=bohaiwan_google_2019&tileMatrix={z}&tileRow={y}&tileCol={x}"
+                    })  
+                });
+    ///
+    ///新建图层加入地图
+    ///
+       map.addLayer(bglayer);
+
+
+    //
+    //根据影像范围设置显示中心点与缩放级数
+    //
+       var view = new ol.View({
+           center: [13334286.7102924,4720000.96039113],
+             zoom: 8
+      }); //map.view的变量
+
+       map.setView(view);
+
+
+
+    </script>
+  
+  </body>
+
+</html>

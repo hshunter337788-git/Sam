@@ -1,0 +1,695 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>OpenLayers测试工程</title>
+        <!--引入OpenLayers JS包-->
+        <link rel="stylesheet" href="./css/ol.css">
+        <script src="./build/ol.js"></script>
+
+        <!--引入Tree JS包-->
+        <link rel="stylesheet" type="text/css" href="js/mktree.css">
+        <script type="text/javascript" src="js/mktree.js"></script>
+
+        <!-- -->
+        <link rel="stylesheet" href="css/index.css">
+        <script type="text/javascript" src="js/jquery-3.4.1.min.js"></script>
+    </head>
+
+    <body>
+        <!--Open Layers 的使用 -->
+        <div id="map" class="map" style="position: absolute">
+        </div>
+
+        <div id="btn_bg">
+            <input style="background:url(icons/Layers_Map_32px.png);width:32px;height:32px;border:none;position: absolute;left: 50px;top: 20px" type="button" id="layercontrolbtn" value="" onclick="showLayerList()" />
+        </div>
+        <div id="tree_bg" style="background:url(Images/maplistbg.jpg);background-size: 100%100%; position: absolute;visibility: hidden;left: 100px;top: 20px;width: 280px;height: 420px">
+            <form>
+                <ul class="mktree" id="tree1">
+                    <li class="liOpen">图层:
+                        <ul>
+                            <li><input name="layervisible" type="checkbox" checked value="0" onclick="clickCheckbox(0,this)"/>卫星图</li>
+                            <li><input name="layervisible" type="checkbox" unchecked onclick="clickCheckbox(1,this)"/>地图</li>
+                            <ul>
+                                <li>透明度:<input id="opacity_map" type="range" min="1" max="100" step="1" value="100"/></li>
+                                <li>范围:<input id="possize_map" type="button" onclick="clickPSBtn(1,this)" style="width: 60px" value="按钮"/></li>
+                            </ul>
+                            <li><input name="layervisible" type="checkbox" unchecked onclick="clickCheckbox(2,this)"/>海图</li>
+                            <ul>
+                                <li>透明度:<input id="opacity_ocean" type="range" min="1" max="100" step="1" value="100"/></li>
+                                <li>范围:<input id="possize_ocean" type="button" onclick="clickPSBtn(2,this)" style="width: 60px" value="按钮"/></li>
+                            </ul>
+                            <li><input name="layervisible" type="checkbox" unchecked onclick="clickCheckbox(3,this)"/>路网图</li>
+                            <li><input name="layervisible" type="checkbox" unchecked onclick="clickCheckbox(4,this)"/>KML</li>
+                            <ul>
+                                <li>信息:<input id="KMLinfo" type="text" /></li>
+                            </ul>
+                        </ul>
+                    </li>
+                    <li>画图
+                        <ul>类型
+                            <SELECT id="drawtype" onchange="changedrawtype(this)">
+                                <OPTION value="None">无
+                                <OPTION value="Point">点
+                                <OPTION value="LineString">线
+                                <OPTION value="Polygon">多边形
+                            </SELECT>
+                        </ul>
+                        <ul>颜色
+                            <SELECT id="drawlinecolor" onchange="changedrawcolor(this)">
+                                <OPTION value= '#0000ff'>蓝
+                                <OPTION value= '#ff0000'>红
+                                <OPTION value= '#00ff00'>绿
+                            </SELECT>
+                        </ul>
+                        <ul>
+                            <!--<li>测量:<input id="measureinfo" type="text" /></li>-->
+                            <lable id="measureinfo">测量;</lable>
+                        </ul>
+                        <ul>
+                            <input type="button" onclick="showpointlist()" value="点信息">
+                        </ul>
+                    </li>
+                    <li>滤镜
+                        <ul>样式
+                            <SELECT id="filter" onchange="changefilter(this)" disabled>
+                                <OPTION value= 'none'>none
+                                <OPTION value= 'sharpen'>sharpen
+                                <OPTION value= 'sharpenless'>sharpen less
+                                <OPTION value= 'blur'>blur
+                                <OPTION value= 'shadow'>shadow
+                                <OPTION value= 'emboss'>emboss
+                                <OPTION value= 'edge'>edge detect
+                            </SELECT>
+                        </ul>
+                    </li>
+                </ul>
+            </form>
+        </div>
+        <div id="mouse-position" style="position: absolute;left: 400px;top: 20px"></div>
+        <div id="table_bg" style="background:url(Images/maplistbg.jpg);background-size: 100%100%; position: absolute;visibility: hidden;left: 380px;top: 20px;width: 502px;height: 240px;font-size: 12px">
+            <table border="1" id="pointtable" style="position:relative;left: 6px;top: 6px">
+                <tr>
+                    <th>名 称</th>
+                    <th>说 明</th>
+                    <th>经 度</th>
+                    <th>维 度</th>
+                    <th>时 间</th>
+                    <th>图 标</th>
+                    <th>删 除</th>
+                </tr>
+            </table>
+        </div>
+
+        <script>
+            g_maplist=[];
+            g_mapindex=0;
+
+            var myrect=function(){
+                this.x=0;
+                this.y=0;
+                this.w=0;
+                this.h=0;
+
+                this.setRect=function(x,y,w,h){
+                    this.x=x;
+                    this.y=y;
+                    this.w=w;
+                    this.h=h;
+                }
+
+                this.isRect=function(){
+                    if(this.w<=0 || this.h<=0) {
+                        return false;
+                    }
+                    return true;
+                }
+            }
+
+            g_map_rect=new myrect();
+            g_ocean_rect=new myrect();
+
+            var pointindex=1;
+            var mypointinfo=function(lon,lat,fea){
+                this.name='point_'+pointindex;
+                pointindex++;
+                this.disc='<========|=';
+                this.icon='icons/picture32.png';
+                this.time=(new Date()).toLocaleString();
+                this.lon = lon;
+                this.lat = lat;
+                this.feature = fea;
+            }
+            var pointinfolist=[];
+
+            ///创建地图对象
+            var map = new ol.Map({
+                controls: ol.control.defaults().extend([
+                    new ol.control.FullScreen(),
+                    new ol.control.OverviewMap({  }),
+                    new ol.control.ScaleLine({  })
+                ]),
+                target: 'map' //div#id='map'
+             });
+
+            ///创建影像图层
+            ///船讯网海图
+            var ocean_layer =  new ol.layer.Tile({
+                title: "海图",
+                source: new ol.source.XYZ({
+                              url:  "http://www.ais.msa.gov.cn/MapService?service=wmts&request=gettile&tilematrixset=basicsearoad&tilematrix={z}&tilerow={y}&tilecol={x}&format=image/png&layer=default&style=default&version=1.0.0"
+                })
+            });
+
+            ///高德地图
+            var map_layer = new ol.layer.Tile({
+                title: "地图",
+                source: new ol.source.XYZ({
+                    url:  "https://wprd01.is.autonavi.com/appmaptile?service=wmts&request=gettile&x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=7&ltype=11"
+                })
+            });
+
+            ///高德卫星图
+            var key = 'Ak-dzM4wZjSqTlzveKz5u0d4IQ4bRzVI309GxmkgSVr1ewS6iPSrOvOKhA-CJlm3';
+            var star_layer = new ol.layer.Tile({
+                title: "卫星图",
+                source: new ol.source.XYZ({
+                    url:  "https://wprd01.is.autonavi.com/appmaptile?service=wmts&request=gettile&x={x}&y={y}&z={z}&style=6"
+                })
+            });
+
+            ///高德路网
+            var road_layer = new ol.layer.Tile({
+                title: "路网",
+                source: new ol.source.XYZ({
+                    url:  "https://wprd01.is.autonavi.com/appmaptile?service=wmts&request=gettile&x={x}&y={y}&z={z}&lang=zh_cn&size=1&scl=1&style=8&ltype=11"
+                })
+            });
+
+            ///kml测试数据
+            var vectorTKML = new ol.source.Vector({
+                url: "KMZ/KML.kml",
+                format: new ol.format.KML({
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857',
+                    extractStyles: true }),
+                projection: 'EPSG:3857'
+            });
+
+            var testkml = new ol.layer.Vector({
+                source: vectorTKML
+            });
+
+            ///新建图层加入地图
+            map.addLayer(star_layer);
+            map.addLayer(map_layer);
+            map_layer.setVisible(false);
+            map.addLayer(ocean_layer);
+            ocean_layer.setVisible(false);
+            map.addLayer(road_layer);
+            road_layer.setVisible(false);
+            map.addLayer(testkml);
+            testkml.setVisible(false);
+
+            g_maplist.push(star_layer);
+            g_maplist.push(map_layer);
+            g_maplist.push(ocean_layer);
+            g_maplist.push(road_layer);
+            g_maplist.push(testkml);
+
+            //根据影像范围设置显示中心点与缩放级数
+            var view = new ol.View({
+                   center: [13334286.7102924,4720000.96039113],
+                   zoom: 8
+            }); //map.view的变量
+
+            map.setView(view);
+
+            ///图层clip
+            var fillStyle = new ol.style.Fill({color: [0, 0, 0, 0]});
+            map_layer.on('precompose', function(event) {
+                if(g_map_rect.isRect()) {
+                    var ctx = event.context;
+                    var radio = event.vectorContext.pixelRatio_;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(g_map_rect.x*radio, g_map_rect.y*radio,g_map_rect.w*radio,g_map_rect.h*radio);
+                    ctx.clip();
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                }
+            });
+
+            map_layer.on('postcompose', function(event) {
+                if(g_map_rect.isRect()) {
+                    var ctx = event.context;
+                    ctx.restore();
+                }
+            });
+
+            ocean_layer.on('precompose', function(event) {
+                if(g_ocean_rect.isRect()) {
+                    var ctx = event.context;
+                    var radio = event.vectorContext.pixelRatio_;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(g_ocean_rect.x*radio, g_ocean_rect.y*radio,g_ocean_rect.w*radio,g_ocean_rect.h*radio);
+                    ctx.clip();
+                }
+            });
+
+            ocean_layer.on('postcompose', function(event) {
+                if(g_ocean_rect.isRect()) {
+                    var ctx = event.context;
+                    ctx.restore();
+                }
+            });
+
+            function showLayerList(){
+                //g_maplist[g_mapindex].setVisible(false);
+                //g_mapindex = (g_mapindex+1)%g_maplist.length;
+                //g_maplist[g_mapindex].setVisible(true);
+                var mbg = document.getElementById("tree_bg");
+                if(mbg.style.visibility=="hidden"){
+                    mbg.style.visibility = "visible";
+                }else{
+                    mbg.style.visibility = "hidden";
+                    document.getElementById("table_bg").style.visibility='hidden';
+                }
+            }
+
+            function showpointlist(){
+                var tbg = document.getElementById("table_bg");
+                if(tbg.style.visibility=="hidden"){
+                    tbg.style.visibility = "visible";
+                }else{
+                    tbg.style.visibility = "hidden";
+                }
+            }
+
+            ///显示/隐藏图层
+            function clickCheckbox(index,acheckbox)
+            {
+                g_maplist[index].setVisible(acheckbox.checked);
+            }
+
+            ///图层透明度
+            opacity_map.addEventListener('input', function(){
+                var aOpacity = parseInt(opacity_map.value)/100.0;
+                g_maplist[1].setOpacity(aOpacity);
+            });
+
+            opacity_ocean.addEventListener('input', function(){
+                var aOpacity = parseInt(opacity_ocean.value)/100.0;
+                g_maplist[2].setOpacity(aOpacity);
+            });
+
+            ///获取KML obj的信息
+            map.on('click', function(evt) {
+                displayFeatureInfo(evt.pixel);
+
+                ///check 鼠标位置
+                docheckmousedraw(evt.pointerEvent);
+
+                ///计算画线长度，多边形面积
+                domeasure();
+
+                ////test获取鼠标位置经纬度，从3857映射到4326
+                /*var tmpv = ol.proj.transform(evt.coordinate, 'EPSG:3857', 'EPSG:4326');
+                console.log(evt.coordinate);///3857 坐标
+                console.log(tmpv);///4326 坐标（经纬度）*/
+            });
+
+            ///添加鼠标位置
+            var mouse_position = new ol.control.MousePosition({
+                coordinateFormat: ol.coordinate.createStringXY(4),
+                projection: 'EPSG:4326',
+                className: 'custom-mouse-position',
+                target: document.getElementById('mouse-position')
+            });
+            map.addControl(mouse_position);
+
+            var displayFeatureInfo = function(pixel) {
+                var features = [];
+                map.forEachFeatureAtPixel(pixel, function(feature, layer) {
+                    features.push(feature);
+                });
+                if (features.length > 0) {
+                    var info = [];
+                    var i, ii;
+                    for (i = 0, ii = features.length; i < ii; ++i) {
+                        info.push(features[i].get('name') + '::'+ features[i].get('description'));
+                    }
+                    document.getElementById('KMLinfo').value = info.join(', ') || '(unknown)';
+                } else {
+                    document.getElementById('KMLinfo').value = '&nbsp;';
+                }
+            };
+
+            ///画图
+            var source = new ol.source.Vector();
+            ///画板图层
+            var drawlayer = new ol.layer.Vector({
+                source: source,
+                style: new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: 'rgba(255, 255, 255, 0.2)'
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: '#0000ff',
+                        width: 3
+                    }),
+                    image: new ol.style.Circle({
+                        radius: 7,
+                        fill: new ol.style.Fill({
+                            color: '#ffcc33'
+                        })
+                    })
+                })
+            });
+
+            var g_drawstate='nodraw';
+            var g_drawindex=-1;
+
+            map.addLayer(drawlayer);
+            ///一个类似画笔的对象
+            var mydraw = null; // global so we can remove it later
+            var mydrawobj=null; //具体描画对象
+
+            function addInteraction(drawtype) {
+                mydraw = new ol.interaction.Draw({
+                    source: source,
+                    type: drawtype,
+                    style: new ol.style.Style({
+                        fill: new ol.style.Fill({
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        }),
+                        stroke: new ol.style.Stroke({
+                            color: '#ff0033',
+                            width: 3
+                        }),
+                        image: new ol.style.Circle({
+                            radius: 7,
+                            fill: new ol.style.Fill({
+                                color: '#ffcc33'
+                            })
+                        })
+                    })
+                });
+                map.addInteraction(mydraw);
+
+                ///描画过程需响应的事件
+                mydraw.on('drawstart',
+                        function(evt) {
+                            mydrawobj = evt.feature;
+                        }, this);
+
+                mydraw.on('drawend',
+                        function(evt) {
+                            mydrawobj = null;
+
+                            var fea=evt.feature;
+                            var geom = fea.getGeometry();
+                            if (geom instanceof ol.geom.Point) {
+                                ///将点的信息存储起来
+                                var tmpv = ol.proj.transform(geom.flatCoordinates, 'EPSG:3857', 'EPSG:4326');
+                                var newpoint = new mypointinfo(tmpv[0],tmpv[1],fea);
+                                pointinfolist.push(newpoint);
+                                //source.clear();
+                                var table= document.getElementById('pointtable');
+                                var clickstr="deletefeature('"+newpoint.name+"',this)";
+                                var str="<tr>"+
+                                        "<td>" + newpoint.name + "</td>"+
+                                        "<td>" + newpoint.disc + "</td>"+
+                                        "<td>" + newpoint.lon.toFixed(4) + "</td>"+
+                                        "<td>" + newpoint.lat.toFixed(4) + "</td>"+
+                                        "<td>" + newpoint.time + "</td>"+
+                                        "<td>" +"<img src='"+ newpoint.icon + "'>"+"</td>"+
+                                        "<td>" +"<input type='button' value='删除' onclick="+clickstr+">" + "</td>"+
+                                        "</tr>";
+                                $('#pointtable').append(str);
+                            }
+
+                        }, this);
+                }
+
+            function deletefeature(name,obj){
+                //console.log(name);
+                var i=0;
+                pointinfolist.forEach(function(item){
+                    if(item.name==name){
+                        source.removeFeature(item.feature);
+                        pointinfolist.splice(i,1);
+                        $(obj).parents("tr").remove();
+                        return;
+                    }
+                    i++;
+                })
+            }
+
+            function clickPSBtn(index,abtn){
+                if(mydraw){
+                    map.removeInteraction(mydraw);
+                    mydraw=null;
+                }
+                addInteraction('LineString');
+                g_drawstate = 'firstpoint';
+                g_drawindex = index;
+                if(g_drawindex==1){
+                    g_map_rect.w=0;
+                    g_map_rect.h=0;
+                }else if(g_drawindex==2){
+                    g_ocean_rect.w=0;
+                    g_ocean_rect.h=0;
+                }
+            }
+
+            function docheckmousedraw(e){
+                //console.log(e.offsetX + " " + e.offsetY);
+                var x= e.clientX ;
+                var y= e.clientY ;
+
+                if(g_drawstate=='nodraw'){
+                    return;
+                }
+
+                if(g_drawstate == 'startdraw'){
+                    g_drawstate = 'firstpoint';
+                    return;
+                }else if(g_drawstate == 'firstpoint'){
+                    g_drawstate = 'secondpoint';
+                    if(g_drawindex==1){
+                        g_map_rect.x=x;
+                        g_map_rect.y=y;
+                    }else if(g_drawindex==2){
+                        g_ocean_rect.x=x;
+                        g_ocean_rect.y=y;
+                    }
+                    return;
+                }else if(g_drawstate == 'secondpoint'){
+                    g_drawstate = 'nodraw';
+                    if(g_drawindex==1){
+                        g_map_rect.w=x - g_map_rect.x;
+                        g_map_rect.h=y - g_map_rect.y;
+                    }else if(g_drawindex==2){
+                        g_ocean_rect.w=x - g_ocean_rect.x;
+                        g_ocean_rect.h=y - g_ocean_rect.y;
+                    }
+                    g_drawindex=-1;
+                    if(mydraw){
+                        map.removeInteraction(mydraw);
+                        mydraw=null;
+                    }
+                    return;
+                }
+            }
+
+            function changedrawtype(aselect){
+                var value = aselect.children[aselect.selectedIndex].value;
+                //console.log(value);
+                if(mydraw){
+                    map.removeInteraction(mydraw);
+                    mydraw=null;
+                }
+
+                if (value !== 'None') {
+                    addInteraction(value);
+                }
+            }
+
+            function changedrawcolor(aselect){
+                var colitem = document.getElementById('drawlinecolor');
+                var color = colitem.children[colitem.selectedIndex].value;
+                drawlayer.style_.stroke_.color_ = color;
+                drawlayer.getSource().refresh();
+            }
+
+            function domeasure(){
+                var outitem = document.getElementById('measureinfo');
+                if(mydrawobj){
+                    var geom = (mydrawobj.getGeometry());
+                    var output='';
+                    if (geom instanceof ol.geom.Polygon) {
+                        output = '面积: '+ formatArea(/** @type {ol.geom.Polygon} */ (geom));
+
+                    } else if (geom instanceof ol.geom.LineString) {
+                        output = '长度: '+  formatLength( /** @type {ol.geom.LineString} */ (geom));
+                    }
+                    outitem.innerHTML = output;
+                }
+            }
+
+            /**
+             * format length output
+             * @param {ol.geom.LineString} line
+             * @return {string}
+             */
+            var formatLength = function(line) {
+                var length = Math.round(line.getLength() * 100) / 100;
+                var output;
+                if (length > 100) {
+                    output = (Math.round(length / 1000 * 100) / 100) +
+                            ' ' + 'km';
+                } else {
+                    output = (Math.round(length * 100) / 100) +
+                            ' ' + 'm';
+                }
+                return output;
+            };
+
+
+            /**
+             * format length output
+             * @param {ol.geom.Polygon} polygon
+             * @return {string}
+             */
+            var formatArea = function(polygon) {
+                var area = polygon.getArea();
+                var output;
+                if (area > 10000) {
+                    output = (Math.round(area / 1000000 * 100) / 100) +
+                            ' ' + 'km<sup>2</sup>';
+                } else {
+                    output = (Math.round(area * 100) / 100) +
+                            ' ' + 'm<sup>2</sup>';
+                }
+                return output;
+            };
+
+            ///滤镜渲染
+            var kernels = {
+                none: [
+                    0, 0, 0,
+                    0, 1, 0,
+                    0, 0, 0
+                ],
+                sharpen: [
+                    0, -1, 0,
+                    -1, 5, -1,
+                    0, -1, 0
+                ],
+                sharpenless: [
+                    0, -1, 0,
+                    -1, 10, -1,
+                    0, -1, 0
+                ],
+                blur: [
+                    1, 1, 1,
+                    1, 1, 1,
+                    1, 1, 1
+                ],
+                shadow: [
+                    1, 2, 1,
+                    0, 1, 0,
+                    -1, -2, -1
+                ],
+                emboss: [
+                    -2, 1, 0,
+                    -1, 1, 1,
+                    0, 1, 2
+                ],
+                edge: [
+                    0, 1, 0,
+                    1, -4, 1,
+                    0, 1, 0
+                ]
+            };
+
+            function normalize(kernel) {
+                var len = kernel.length;
+                var normal = new Array(len);
+                var i, sum = 0;
+                for (i = 0; i < len; ++i) {
+                    sum += kernel[i];
+                }
+                if (sum <= 0) {
+                    normal.normalized = false;
+                    sum = 1;
+                } else {
+                    normal.normalized = true;
+                }
+                for (i = 0; i < len; ++i) {
+                    normal[i] = kernel[i] / sum;
+                }
+                return normal;
+            }
+
+            var filtertype = null;
+            function changefilter(){
+                var item = document.getElementById('filter');
+                filtertype = normalize(kernels[item.value]);
+                map.render();
+            }
+
+            star_layer.on('postcompose', function(event) {
+                if(filtertype) {
+                    convolve(event.context, filtertype);
+                }
+            });
+
+            function convolve(context, kernel) {
+                var canvas = context.canvas;
+                var width = canvas.width;
+                var height = canvas.height;
+
+                var size = Math.sqrt(kernel.length);
+                var half = Math.floor(size / 2);
+
+                var inputData = context.getImageData(0, 0, width, height).data;
+
+                var output = context.createImageData(width, height);
+                var outputData = output.data;
+
+                for (var pixelY = 0; pixelY < height; ++pixelY) {
+                    var pixelsAbove = pixelY * width;
+                    for (var pixelX = 0; pixelX < width; ++pixelX) {
+                        var r = 0, g = 0, b = 0, a = 0;
+                        for (var kernelY = 0; kernelY < size; ++kernelY) {
+                            for (var kernelX = 0; kernelX < size; ++kernelX) {
+                                var weight = kernel[kernelY * size + kernelX];
+                                var neighborY = Math.min(
+                                                height - 1, Math.max(0, pixelY + kernelY - half));
+                                var neighborX = Math.min(
+                                                width - 1, Math.max(0, pixelX + kernelX - half));
+                                var inputIndex = (neighborY * width + neighborX) * 4;
+                                r += inputData[inputIndex] * weight;
+                                g += inputData[inputIndex + 1] * weight;
+                                b += inputData[inputIndex + 2] * weight;
+                                a += inputData[inputIndex + 3] * weight;
+                            }
+                        }
+                        var outputIndex = (pixelsAbove + pixelX) * 4;
+                        outputData[outputIndex] = r;
+                        outputData[outputIndex + 1] = g;
+                        outputData[outputIndex + 2] = b;
+                        outputData[outputIndex + 3] = kernel.normalized ? a : 255;
+                    }
+                }
+                context.putImageData(output, 0, 0);
+            }
+        </script>
+  
+    </body>
+
+</html>

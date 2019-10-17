@@ -1,0 +1,204 @@
+﻿/* 自定义工具栏 */
+
+.toolsets {
+    background-color: #009966;
+    padding-left: 300px;
+}
+
+.toolsets a {
+    border: solid 1px #ccc;
+    color: #fff;
+}
+
+.toolsets a:hover {
+    cursor: pointer;
+    color: #ccc;
+}
+
+#div3{
+position:absolute;
+right:0px;
+top:10px;
+}
+
+#div2{
+position:absolute;
+right:0px;
+top:45px;
+}
+
+#divlayercontrol{
+background:url(/pages/icons/background.jpg);no-repeat;width:300px;height:300px; 
+height:360px;
+width:300px;
+display:none;
+position:absolute;
+right:32px;
+top:75px;
+}
+
+
+#toolbox{
+background:url(/pages/icons/background.jpg);no-repeat 
+height:80px;
+width:300px;
+display:block;
+position:absolute;
+right:32px;
+top:13px;
+}
+
+
+#div0{
+height:300px;
+width:300px;
+z-index:10;
+position:absolute;
+right:20px;
+top:60px;
+}
+
+#divexportpdfcontrol{
+position:absolute;
+right:0px;
+top:80px;
+}
+#divexportoptions{
+background:url(/pages/icons/background.jpg);no-repeat;width:130px;height:300px;
+height:130px;
+width:300px;
+display:none;
+position:absolute;
+right:32px;
+top:105px;
+}
+
+
+.navipanel{
+position:absolute;
+height:640px;
+width:300px;
+display:none;
+z-index:100;
+}
+
+
+#navipanel{
+position:absolute;
+height:640px;
+width:300px;
+left:32px;
+top:105px;
+display:none;
+z-index:100;
+
+}
+
+/* 打印设置 */
+
+.print-form {
+    /*display: none;*/
+    /*position: absolute;*/
+    margin-left: 700px;
+}
+
+
+/*  */
+
+.map:-moz-full-screen {
+    height: 100%;
+}
+
+.map:-webkit-full-screen {
+    height: 100%;
+}
+
+.map:-ms-fullscreen {
+    height: 100%;
+}
+
+.map:fullscreen {
+    height: 100%;
+}
+
+.ol-rotate {
+    top: 3em;
+}
+
+.map {
+    height:100vh;
+    width:100%;
+}
+
+
+/*标记*/
+
+#marker {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #088;
+    border-radius: 10px;
+    background-color: #0FF;
+    opacity: 0.5;
+}
+
+
+#Shanghai {
+    text-decoration: none;
+    color: white;
+    font-size: 11pt;
+    font-weight: bold;
+    text-shadow: black 0.1em 0.1em 0.2em;
+}
+
+
+/*popup*/
+
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    -webkit-filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2));
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+}
+
+.ol-popup:after,
+.ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+}
+
+.ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+}
+
+.ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+}
+
+.ol-popup-closer:after {
+    content: "✖";
+}

@@ -1,0 +1,114 @@
+﻿<html>
+<head>
+<title>Tree</title>
+<link rel="stylesheet" type="text/css" href="js/mktree.css">
+<script type="text/javascript" src="js/mktree.js"></script>
+</head>
+<body>
+<ul class="mktree" id="tree1">
+   <li class="liOpen">清洁生产遥感监测专题&nbsp;<img src=icons/info_24px.png border=0 align="top">
+    <ul>
+	<li class="liOpen">大庆油田
+		<ul>
+	   	   <li><a href="javascript:onClickTreeNode('/pages/daqing.html');" onClick="onClickTreeNode('/pages/daqing.html');" >大庆地区</a></li>
+             
+	   	   <li><a href="javascript:onClickTreeNode('/pages/hailaer.html');" onClick="onClickTreeNode('/pages/hailaer.html');">海拉尔地区</a></li>
+                   
+                </ul>
+	</li>
+        <li>吉林油田
+          <ul>
+          </ul>
+	</li>
+       <li>辽河油田
+          <ul>
+          </ul>
+	</li>
+        <li>冀东油田
+          <ul>
+          </ul>
+	</li>
+        <li>大港油田
+          <ul>
+          </ul>
+	</li>
+        <li>华北油田
+          <ul>
+          </ul>
+	</li>
+        <li>长庆油田
+          <ul>
+          </ul>
+	</li>
+        <li>西南油气田
+          <ul>
+          </ul>
+	</li>
+        <li>玉门油田
+          <ul>
+          </ul>
+	</li>
+        <li>青海油田
+          <ul>
+          </ul>
+	</li>
+        <li>吐哈油田
+          <ul>
+          </ul>
+	</li>
+        <li>塔里木油田
+          <ul>
+          </ul>
+	</li>
+        <li>新疆油田
+          <ul>
+          </ul>
+	</li>
+        <li>浙江油田
+          <ul>
+          </ul>
+	</li>
+        <li>南方油田
+          <ul>
+          </ul>
+	</li>
+        <li>煤层气
+          <ul>
+          </ul>
+	</li>
+     </ul>
+   </li>
+   <li class="liOpen">海上溢油遥感监测专题&nbsp;<img src=icons/info_24px.png border=0 align="top">
+     <ul>
+       <li><a href="javascript:onClickTreeNode('/pages/bohaiwan.html');" onClick="onClickTreeNode('/pages/bohaiwan.html');">渤海湾海上溢油遥感监测</a></li>
+     </ul>
+   </li>
+   <li class="liOpen">油气田生态环境遥感监测专题&nbsp;<img src=icons/info_24px.png border=0 align="top">
+    <ul>
+     </ul>
+ 
+   </li>
+   <li class="liOpen">保护区油气活动遥感监测专题&nbsp;<img src=icons/info_24px.png border=0 align="top">
+     <ul>
+        <li>白洋淀保护区油气活动遥感监测</li>
+    </ul>
+   </li>
+   <li class="liOpen">其它遥感监测专题&nbsp;<img src=icons/info_24px.png border=0 align="top">
+    <ul>
+    </ul>
+   </li>
+   <li class="liOpen">基础遥感影像&nbsp;<img src=icons/info_24px.png border=0 align="top">
+    <ul>
+          <li><a href="javascript:onClickTreeNode('/pages/chinamosaic.html');" onClick="onClickTreeNode('/pages/chinamosaic.html');">全国多源多分辨率遥感影像</a></li>
+    </ul>
+   </li>
+</ul>
+<script>
+  function onClickTreeNode(url)
+   {
+     var oldURL = window.parent.document.getElementById("mappage").src;  
+     window.parent.document.getElementById("mappage").src = url;
+ }
+</script>
+</body>
+</html>

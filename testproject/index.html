@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>TTT</title>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+    <script type="text/javascript" src="js/imagefilters.js"></script>
+    <script type="text/javascript" src="js/change.js"></script>
+</head>
+<body>
+    <canvas id="mycanvas" style="left: 60px;top: 50px;position: absolute"></canvas>
+    <img src="images/pic.jpg"  id="myimg" style="position: absolute;left: 600px;top: 50px">
+    <!--<img src="https://www.w3school.com.cn/i/eg_tulip.jpg"  id="myimg"  style="position: absolute;left: 600px;top: 40px">-->
+    <input type="button" onclick="changepic()" style="width: 100px;position: absolute" value="revert">
+    <SELECT id="filter" onchange="changefilter(this)" style="position: absolute;left: 8px;top: 35px;width: 100px">
+        <OPTION value= 'none'>none
+        <OPTION value= 'sharpen'>sharpen
+        <OPTION value= 'sharpenless'>sharpen less
+        <OPTION value= 'blur'>blur
+        <OPTION value= 'shadow'>shadow
+        <OPTION value= 'emboss'>emboss
+        <OPTION value= 'edge'>edge detect
+    </SELECT>
+    <SELECT id="filterII" onchange="changefilterII(this)" style="position: absolute;left: 8px;top: 60px;width: 100px">
+        <OPTION value= 'none'>none
+        <OPTION value= 'gamma'>Gamma
+        <OPTION value= 'grayscale'>去色
+        <OPTION value= 'invert'>反色
+        <OPTION value= 'enrich'>增强
+        <OPTION value= 'sharpen'>锐化
+        <OPTION value= 'BrightnessContrast'>亮度对比度
+    </SELECT>
+    <div id="VSL1" style="position: absolute;left: 110px;top: 90px"></div>
+    <div id="VSL2" style="position: absolute;left: 110px;top: 120px"></div>
+    <input id="SL1" type="range" min="-100" max="100" step="1" value="0" style="position: absolute;left: 8px;top: 90px;width: 100px;visibility: hidden" onchange="changeslider1(this)"/>
+    <input id="SL2" type="range" min="-100" max="100" step="1" value="0" style="position: absolute;left: 8px;top: 120px;width: 100px;visibility: hidden" onchange="changeslider2(this)"/>
+    <script>
+        $( document ).ready(function() {
+            //changepic();
+        })
+    </script>
+</body>
+</html>

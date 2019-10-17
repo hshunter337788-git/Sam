@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+<style>
+
+#toolpanel{
+background:url(/pages/icons/background.jpg);no-repeat; 
+position:absolute;
+left:0px;
+top: 0px;
+height:100vh;
+width:360px;
+display : block;
+border:none;
+}
+
+#layercontrolbutton{
+position:absolute;
+left:320px;
+top:300px;
+height:80px;
+width:80px;
+background:url(images/toleft.png); 
+border:none;
+z-index:10;
+}
+
+
+#mappage{
+  height:100vh;
+   width:100%;
+border:none;
+scrolling:no;
+}
+
+#themetree{
+  height:100vh;
+  border:none;
+}
+
+#main{
+  border:none;
+}
+
+
+</style>
+
+
+</head>
+<body style="margin:0px">
+
+<div id="main">
+    <div id="mapframe">
+        <iframe src="/pages/daqing.html" id="mappage" name="mappage"  marginwidth="0px" marginheight="0px" scrolling="no" ></iframe>
+   </div>
+    <input type="button" value="" id="layercontrolbutton" onclick="togglePanel();" />
+    <div id="toolpanel" class="toolpanel">
+	<iframe src="/pages/tree2.html" id="themetree" name="themetree" marginwidth="0px" marginheight="0px" scrolling="no"></iframe>
+    </div>
+   
+</div>
+
+<script>
+
+ function togglePanel()
+      {
+       if (document.getElementById)
+           {
+              target=document.getElementById("toolpanel");
+              btn = document.getElementById("layercontrolbutton");
+               if (target.style.display=="block")
+                {
+                   target.style.display="none";
+                   btn.style.left="0px";
+                   btn.style.background="url(images/para.png)";
+                
+                 } 
+               else 
+                {
+                   target.style.display="block";
+                   btn.style.left="320px";
+                   btn.style.background="url(images/toleft.png)";
+                   
+                }
+           }
+      }
+</script>
+
+</body>
+</html>

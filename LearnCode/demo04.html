@@ -1,0 +1,492 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>区域生成算法提取目标</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="./css/ol.css">
+    <link rel="stylesheet" type="text/css" href="js/mktree.css">
+    <script src="./build/ol.js"></script>
+    <script type="text/javascript" src="js/mktree.js"></script>
+    <script type="text/javascript" src="js/jspdf.min.js"></script>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/imagefilters.js"></script>
+   
+<style>
+#swipe{
+  display:none;
+}
+
+ <style>
+      table.controls td {
+        min-width: 110px;
+        padding: 2px 5px;
+      }
+    </style>
+</style>
+</head>
+
+<body>
+<link rel="stylesheet" type="text/css" href="js/jquery.datetimepicker.min.css"/>
+<script src="js/jquery.datetimepicker.js"></script>
+
+
+  <div class="toolsets">
+    <div id="div0">
+      <div id="div3"><input style="background:url(icons/info.png);width:32px;height:32px;border:none" type="button" id="infobtn" value="" onclick="TurnOnOffFunctionClipLayer('swipe',ditulayer);" /></div><br>
+      <div id="div2"><input style="background:url(icons/Layers_Map_32px.png);width:32px;height:32px;border:none" type="button" id="layercontrolbtn" value="" onclick="openLayerOptionsPanel()" /></div><br>
+           <div id="divlayercontrol">
+             <form>
+              <ul class="mktree" id="tree1">
+                <li class="liOpen">渤海湾基础遥感影像:
+                   <ul>
+                     <li><input name="layervisible" type="checkbox" checked value="0" onclick="clickCheckbox(0,this)"/>渤海湾谷歌影像</li>
+                     <li><input name="layervisible" type="checkbox" checked value="0" onclick="clickCheckbox(1,this)"/>渤海湾地图</li>
+                      <ul>
+                      <li>透明度:<input id="opacity" type="range" min="1" max="100" step="1" value="100"/></li>
+                    </ul>
+                  </ul>
+               </li>
+             </ul>
+            </form>
+          </div>
+     
+    </div>
+   </div>
+
+   <div id="map" class="map">
+      <div id="popup" class="ol-popup">
+           <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+           <div id="popup-content"></div>
+      </div>
+      <table class="controls">
+      <tr>
+        <td>Threshold: <span id="threshold-value"></span></td>
+        <td><input id="threshold" type="range" min="1" max="50" value="20"></td>
+      </tr>
+    </table>
+   </div>
+
+ 
+ <script>
+
+
+    //
+    //根据影像范围设置显示中心点与缩放级数
+    //
+       var view = new ol.View({
+           center: [13334286.7102924,4720000.96039113],
+             zoom: 8
+      }); //map.view的变量
+
+   ///
+   ///创建地图对象
+   ///
+
+   var map = new ol.Map({
+     controls: ol.control.defaults().extend([
+        new ol.control.FullScreen(), //全屏控件
+        new ol.control.ScaleLine(), //比例尺
+        new ol.control.OverviewMap(), //鹰眼控件
+        //new ol.control.Zoom(),
+    ]),
+      // layers: [bglayer], //添加两个图层
+       target: 'map', //div#id='map'
+         view: view,
+    // interaction:
+     });      
+
+    ///
+    ///创建用于存放图层的数组,该数组用于控制图层可视性及其它设置
+    ///
+      var mapLayers = new Array();
+
+    ///
+    ///创建渤海湾谷歌影像图层
+    ///
+      var bglayer =  new ol.layer.Tile({  
+                     title: "渤海湾谷歌影像", 
+                    source: new ol.source.XYZ({  
+                          url:  "http://10.122.156.28/MapService/haitu.aspx?request=GetTile&dataset=bohaiwan_google_2019&tileMatrix={z}&tileRow={y}&tileCol={x}"
+                    })  
+                });
+    ///
+    ///加入到图层数组
+    ///
+       mapLayers[0] = bglayer;
+       map.addLayer(bglayer);
+
+
+
+ ///
+    ///创建渤海湾谷歌影像图层
+    ///
+      var ditulayer =  new ol.layer.Tile({  
+                     title: "渤海湾地图", 
+                    source: new ol.source.XYZ({  
+                          url:  "http://10.122.156.28/MapService/haitu.aspx?request=GetTile&dataset=haitu2019&tileMatrix={z}&tileRow={y}&tileCol={x}"
+                    })  
+                });
+    ///
+    ///加入到图层数组
+    ///
+       mapLayers[1] = ditulayer;
+       map.addLayer(ditulayer);
+
+  
+   /**
+    * Elements that make up the popup.
+     */
+      var container = document.getElementById('popup');
+      var content = document.getElementById('popup-content');
+      var closer = document.getElementById('popup-closer');
+
+      var overlay = new ol.Overlay({
+             element: container,
+             autoPan: true,
+             autoPanAnimation: {
+             duration: 250
+         }
+       });
+
+      var IdentifierOn = false;
+      map.addOverlay(overlay);
+
+
+     function clickCheckbox(index,acheckbox)
+          {
+             mapLayers[index].setVisible(acheckbox.checked);
+
+             
+            var boxes = document.getElementsByName("layervisible");
+
+            
+          }
+
+    
+
+      function toggle(targetid)
+       {
+        if (document.getElementById)
+           {
+              target=document.getElementById(targetid);
+               if (target.style.display=="block")
+                {
+                   target.style.display="none";
+                 } 
+               else 
+                {
+                   target.style.display="block";
+                }
+           }
+      }
+
+
+      function toggleOff(targetid)
+      {
+       if (document.getElementById)
+           {
+              target=document.getElementById(targetid);
+              target.style.display="none";
+           }
+      }
+     function enablePopup()
+      {
+          IdentifierOn = !IdentifierOn;
+        //   applyFilter(true);
+
+      }
+
+      /**
+       * Add a click handler to hide the popup.
+       * @return {boolean} Don't follow the href.
+       */
+      closer.onclick = function() {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
+ 
+     
+
+     function openLayerOptionsPanel()
+       {
+         toggle("divlayercontrol");
+  
+       }
+
+     function openExportOptionsPanel()
+       {
+         toggleOff("divlayercontrol");
+         toggle("divexportoptions");
+  
+       }
+
+       
+
+     var displayFeatureInfo = function(e) 
+         {
+              var features = [];
+              map.forEachFeatureAtPixel(e.pixel, function(feature) {
+              features.push(feature);
+           });
+       
+        var coordinate = e.coordinate;
+       
+        if (features.length > 0) {
+          var info = [];
+          var i, ii;
+        
+       
+           for (i = 0, ii = features.length; i < ii; ++i) {
+       
+              var aLine  ="名称:"+features[i].get('name')+"<BR>"+features[i].get('description');
+
+              info.push(aLine);
+            }
+
+           
+           
+            content.innerHTML =info.join(',<BR> ') || '(unknown)';
+          
+            overlay.setPosition(coordinate);
+          } 
+           else 
+             {
+              //document.getElementById('info').innerHTML = '&nbsp;';
+              // map.getTarget().style.cursor = '';
+             }
+        };
+
+          
+
+    function applyFilter(onFilter)
+    {
+       if (onFilter){
+             Mundi_WMS_S1Layers.on('postcompose', function(event) {
+                       imageFilter(event.context);
+                 });
+
+    
+        }
+    }
+
+     function  imageFilter(context)
+      {
+          var canvas = context.canvas;
+          var width = canvas.width;
+          var height = canvas.height;
+          var inputImage = context.getImageData(0, 0, width, height);
+
+          var inputData = context.getImageData(0, 0, width, height).data;
+
+          var output = context.createImageData(width, height);
+          var outputData = output.data;
+        
+        //  ImageFilters.utils.mapRGB(inputData,outputData,2.0);
+
+       // var filteredImage = ImageFilters.Gamma(inputImage,2.0);
+	//  context.putImageData(output, 0, 0);
+      }
+
+   
+      opacity.addEventListener('input', function(){
+            var aOpacity = parseInt(opacity.value)/100.0;
+
+             ditulayer.setOpacity(aOpacity);
+          });
+
+
+       function swipeLayer_RestoreContext(event) 
+              {
+                 var ctx = event.context;
+                 ctx.restore();
+              }
+
+       function swipeLayer_Listener(event)
+        {
+           var ctx = event.context;
+           var width = ctx.canvas.width * (swipe.value / 100);
+
+           ctx.save();
+           ctx.beginPath();
+           ctx.rect(width, 0, ctx.canvas.width - width, ctx.canvas.height);
+           ctx.clip();
+        }
+
+        function MapRender() 
+                {
+                   map.render();
+                }
+      
+
+
+        function TurnOnOffFunctionClipLayer(controlid,aLayer)
+        {
+          controller = document.getElementById(controlid);
+          if (controller.style.display=="block")
+                {
+                   controller.style.display="none";
+                   aLayer.un('precompose',swipeLayer_Listener);
+
+                   aLlayer.un('postcompose',swipeLayer_RestoreContext);
+                 
+                   controller.removeEventListener('input',MapRender, false);
+
+                   MapRender();
+
+                 } 
+               else 
+                {
+                   controller.style.display="block";
+                   
+                   aLayer.on('precompose',swipeLayer_Listener);
+
+                   aLayer.on('postcompose',swipeLayer_RestoreContext);
+                 
+                   controller.addEventListener('input',MapRender, false);
+                   
+                   MapRender();
+               };
+
+         }
+
+    function growRegion(inputs, data) {
+        var image = inputs[0];
+        var seed = data.pixel;
+        var delta = parseInt(data.delta);
+        if (!seed) {
+          return image;
+        }
+
+        seed = seed.map(Math.round);
+        var width = image.width;
+        var height = image.height;
+        var inputData = image.data;
+        var outputData = new Uint8ClampedArray(inputData);
+        var seedIdx = (seed[1] * width + seed[0]) * 4;
+        var seedR = inputData[seedIdx];
+        var seedG = inputData[seedIdx + 1];
+        var seedB = inputData[seedIdx + 2];
+        var edge = [seed];
+        while (edge.length) {
+          var newedge = [];
+          for (var i = 0, ii = edge.length; i < ii; i++) {
+            // As noted in the Raster source constructor, this function is provided
+            // using the `lib` option. Other functions will NOT be visible unless
+            // provided using the `lib` option.
+            var next = next4Edges(edge[i]);
+            for (var j = 0, jj = next.length; j < jj; j++) {
+              var s = next[j][0];
+              var t = next[j][1];
+              if (s >= 0 && s < width && t >= 0 && t < height) {
+                var ci = (t * width + s) * 4;
+                var cr = inputData[ci];
+                var cg = inputData[ci + 1];
+                var cb = inputData[ci + 2];
+                var ca = inputData[ci + 3];
+                // if alpha is zero, carry on
+                if (ca === 0) {
+                  continue;
+                }
+                if (Math.abs(seedR - cr) < delta && Math.abs(seedG - cg) < delta &&
+                    Math.abs(seedB - cb) < delta) {
+                  outputData[ci] = 255;
+                  outputData[ci + 1] = 0;
+                  outputData[ci + 2] = 0;
+                  outputData[ci + 3] = 255;
+                  newedge.push([s, t]);
+                }
+                // mark as visited
+                inputData[ci + 3] = 0;
+              }
+            }
+          }
+          edge = newedge;
+        }
+        return {data: outputData, width: width, height: height};
+      };
+    
+
+      function next4Edges(edge) {
+        var x = edge[0];
+        var y = edge[1];
+        return [
+          [x + 1, y],
+          [x - 1, y],
+          [x, y + 1],
+          [x, y - 1]
+        ];
+      }
+
+    function DoRegion_Growing(event) 
+      {
+        // the event.data object will be passed to operations
+          var data = event.data;
+          data.delta = thresholdControl.value;
+          if (coordinate) {
+            data.pixel = map.getPixelFromCoordinate(coordinate);
+        }
+      };
+
+
+
+         
+        var raster = new ol.source.Raster({
+        sources: [bglayer.getSource()],
+        operationType: 'image',
+        operation: growRegion,
+        // Functions in the `lib` object will be available to the operation run in
+        // the web worker.
+        lib: {
+          next4Edges: next4Edges
+        }
+      });
+
+    
+
+      var rasterImage = new ol.layer.Image({
+        opacity: 0.7,
+        source: raster
+      });
+ 
+      map.addLayer(rasterImage);
+     
+      var coordinate;
+
+      map.on('click', function(event) {
+        coordinate = event.coordinate;
+        raster.changed();
+      });
+
+     
+      var thresholdControl = document.getElementById('threshold');
+
+      raster.on('beforeoperations', function(event) {
+        // the event.data object will be passed to operations
+        var data = event.data;
+        data.delta = thresholdControl.value;
+        if (coordinate) {
+          data.pixel = map.getPixelFromCoordinate(coordinate);
+        }
+      });
+
+   
+
+      function updateControlValue() {
+        document.getElementById('threshold-value').innerText = thresholdControl.value;
+      }
+      updateControlValue();
+
+      thresholdControl.addEventListener('input', function() {
+        updateControlValue();
+        raster.changed();
+      });   
+
+
+    </script>
+  
+  </body>
+
+</html>
